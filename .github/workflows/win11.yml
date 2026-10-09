@@ -17,6 +17,10 @@ jobs:
           
       - name: Create RDP User
         run: |
+          secedit /export /cfg $env:temp\secpol.cfg
+          (Get-Content $env:temp\secpol.cfg) -replace "PasswordComplexity = 1", "PasswordComplexity = 0" | Set-Content $env:temp\secpol.cfg
+          secedit /configure /db $env:windir\security\local.sdb /cfg $env:temp\secpol.cfg /areas SECURITYPOLICY
+          
           $Password = ConvertTo-SecureString "ilmi1234@" -AsPlainText -Force
           New-LocalUser "ilmi" -Password $Password -FullName "Ilmi RDP" -Description "User for RDP"
           Add-LocalGroupMember -Group "Administrators" -Member "ilmi"
