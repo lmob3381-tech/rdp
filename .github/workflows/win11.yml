@@ -1,0 +1,49 @@
+name: Windows 11 RDP via Tailscale
+
+on:
+  workflow_dispatch:
+  
+jobs:
+  build:
+    name: Run Windows RDP
+    runs-on: windows-latest
+    
+    steps:
+      - name: Enable RDP (Remote Desktop)
+        run: |
+          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server'-name "fDenyTSConnections" -Value 0
+          Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -name "UserAuthentication" -Value 1
+          
+      - name: Create RDP User
+        run: |
+          $Password = ConvertTo-SecureString "Windows123!" -AsPlainText -Force
+          New-LocalUser "RDPUser" -Password $Password -FullName "RDP User" -Description "User for RDP"
+          Add-LocalGroupMember -Group "Administrators" -Member "RDPUser"
+          Add-LocalGroupMember -Group "Remote Desktop Users" -Member "RDPUser"
+          
+      - name: Download & Install Tailscale
+        run: |
+          Invoke-WebRequest -Uri "https://pkgs.tailscale.com/stable/tailscale-setup-latest.exe" -OutFile "tailscale-setup.exe"
+          Start-Process -FilePath ".\tailscale-setup.exe" -ArgumentList "/quiet" -Wait
+          
+      - name: Connect to Tailscale
+        run: |
+          & "C:\Program Files\Tailscale\tailscale.exe" up --authkey="tskey-auth-kZG3kY3t5211CNTRL-LtjttLtxggVnz3K17iWggVd3fPk8ERUG" --hostname="github-windows-rdp" --unattended
+          
+      - name: Show RDP Info
+        run: |
+          $status = & "C:\Program Files\Tailscale\tailscale.exe" status --json | ConvertFrom-Json
+          $tsIP = $status.Self.TailscaleIPs[0]
+          Write-Host "========================================="
+          Write-Host " RDP is Ready!"
+          Write-Host " Connect via Tailscale IP: $tsIP"
+          Write-Host " Username: RDPUser"
+          Write-Host " Password: Windows123!"
+          Write-Host "========================================="
+          
+      - name: Keep Alive
+        run: |
+          while ($true) {
+            Start-Sleep -Seconds 60
+          }
