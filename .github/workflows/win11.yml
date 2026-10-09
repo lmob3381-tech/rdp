@@ -17,10 +17,10 @@ jobs:
           
       - name: Create RDP User
         run: |
-          $Password = ConvertTo-SecureString "Windows123!" -AsPlainText -Force
-          New-LocalUser "RDPUser" -Password $Password -FullName "RDP User" -Description "User for RDP"
-          Add-LocalGroupMember -Group "Administrators" -Member "RDPUser"
-          Add-LocalGroupMember -Group "Remote Desktop Users" -Member "RDPUser"
+          $Password = ConvertTo-SecureString "ilmi1234@" -AsPlainText -Force
+          New-LocalUser "ilmi" -Password $Password -FullName "Ilmi RDP" -Description "User for RDP"
+          Add-LocalGroupMember -Group "Administrators" -Member "ilmi"
+          Add-LocalGroupMember -Group "Remote Desktop Users" -Member "ilmi"
           
       - name: Download & Install Tailscale
         run: |
@@ -38,8 +38,8 @@ jobs:
           Write-Host "========================================="
           Write-Host " RDP is Ready!"
           Write-Host " Connect via Tailscale IP: $tsIP"
-          Write-Host " Username: RDPUser"
-          Write-Host " Password: Windows123!"
+          Write-Host " Username: ilmi"
+          Write-Host " Password: ilmi1234@"
           Write-Host "========================================="
           
       - name: Keep Alive
